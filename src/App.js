@@ -134,27 +134,37 @@ function App() {
   };
 
   const getRandomRecipe = (usedRecipes, isToday) => {
+    // Filtra le ricette per stagione e non ancora utilizzate
     let availableRecipes = recipes.filter(recipe => 
       !usedRecipes.has(recipe._id) &&
       (recipe.season === currentSeason || recipe.season === 'all')
     );
   
-    if (isToday && availableIngredients.length > 0) {
-      availableRecipes = availableRecipes.sort((a, b) => {
-        const aMatches = a.ingredients.filter(ing => 
-          availableIngredients.some(avail => ing.toLowerCase().includes(avail.toLowerCase()))
-        ).length;
-        const bMatches = b.ingredients.filter(ing => 
-          availableIngredients.some(avail => ing.toLowerCase().includes(avail.toLowerCase()))
-        ).length;
-        return bMatches - aMatches;
-      });
-    }
-  
+    // Se non ci sono ricette disponibili, resetta usedRecipes e riprova
     if (availableRecipes.length === 0) {
-      return recipes[Math.floor(Math.random() * recipes.length)];
+      usedRecipes.clear();
+      availableRecipes = recipes.filter(recipe => 
+        recipe.season === currentSeason || recipe.season === 'all'
+      );
     }
   
+    // Se è oggi e ci sono ingredienti disponibili, prova a trovare una ricetta che li usa
+    if (isToday && availableIngredients.length > 0) {
+      const recipesWithIngredients = availableRecipes.filter(recipe =>
+        recipe.ingredients.some(ing => 
+          availableIngredients.some(avail => 
+            ing.toLowerCase().includes(avail.toLowerCase())
+          )
+        )
+      );
+  
+      // Se troviamo ricette con gli ingredienti disponibili, scegliamo tra queste
+      if (recipesWithIngredients.length > 0) {
+        return recipesWithIngredients[Math.floor(Math.random() * recipesWithIngredients.length)];
+      }
+    }
+  
+    // Altrimenti, scegliamo una ricetta casuale tra quelle disponibili
     return availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
   };
 
