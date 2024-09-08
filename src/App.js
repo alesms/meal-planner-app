@@ -275,7 +275,7 @@ function App() {
                         <CardContent>
                           <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
                             {day.day} ({day.date.toLocaleDateString()})
-                            {index === 0 && " - Oggi"}
+                            {index === 0}
                           </Typography>
                           <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 'bold', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>
                             {day.dinner.name}
