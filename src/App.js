@@ -64,7 +64,6 @@ function App() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
@@ -104,16 +103,15 @@ function App() {
 
   const generateMealPlan = () => {
     const weekPlan = [];
-    const usedRecipes = new Set();
-    let currentDateCopy = new Date(); // Data corrente
-    const today = new Date(); // Salviamo la data di oggi per confronto
+    const usedRecipes = new Set(selectedRecipes.map(recipe => recipe._id));
+    let currentDateCopy = new Date();
+    const today = new Date();
 
-    // Troviamo il prossimo lunedì se non siamo già in un giorno valido (lun-gio)
     while (currentDateCopy.getDay() < 1 || currentDateCopy.getDay() > 4) {
       currentDateCopy.setDate(currentDateCopy.getDate() + 1);
     }
 
-    while (weekPlan.length < 4) {  // Generiamo un piano per 4 giorni (lunedì a giovedì)
+    while (weekPlan.length < 4) {
       const dayOfWeek = currentDateCopy.getDay();
       
       if (dayOfWeek >= 1 && dayOfWeek <= 4) {
@@ -122,7 +120,6 @@ function App() {
         
         if (dinner) {
           usedRecipes.add(dinner._id);
-
           const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
           weekPlan.push({ 
             day: `${days[dayOfWeek]}${isToday ? ' (oggi)' : ''}`,
@@ -131,24 +128,20 @@ function App() {
           });
         }
       }
-
-      // Passa al giorno successivo
       currentDateCopy.setDate(currentDateCopy.getDate() + 1);
     }
 
     setMealPlan(weekPlan);
     setSelectedRecipes([]); // Resetta le ricette selezionate
-    setAvailableIngredients([]); // Resetta gli ingredienti disponibili
+    setAvailableIngredients([]);
   };
 
   const getRandomRecipe = (usedRecipes, isToday) => {
-    // Filtra le ricette per stagione e non ancora utilizzate
     let availableRecipes = recipes.filter(recipe => 
       !usedRecipes.has(recipe._id) &&
       (recipe.season === currentSeason || recipe.season === 'all')
     );
 
-    // Se non ci sono ricette disponibili, resetta usedRecipes e riprova
     if (availableRecipes.length === 0) {
       usedRecipes.clear();
       availableRecipes = recipes.filter(recipe => 
@@ -156,7 +149,6 @@ function App() {
       );
     }
 
-    // Se è oggi e ci sono ingredienti disponibili, prova a trovare una ricetta che li usa
     if (isToday && availableIngredients.length > 0) {
       const recipesWithIngredients = availableRecipes.filter(recipe =>
         recipe.ingredients.some(ing => 
@@ -166,13 +158,11 @@ function App() {
         )
       );
 
-      // Se troviamo ricette con gli ingredienti disponibili, scegliamo tra queste
       if (recipesWithIngredients.length > 0) {
         return recipesWithIngredients[Math.floor(Math.random() * recipesWithIngredients.length)];
       }
     }
 
-    // Altrimenti, scegliamo una ricetta casuale tra quelle disponibili
     return availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
   };
 
@@ -187,7 +177,6 @@ function App() {
     });
   };
 
-  
   const regenerateRecipe = (index) => {
     const newMealPlan = [...mealPlan];
     const usedRecipes = new Set(mealPlan.map(day => day.dinner._id));
@@ -359,10 +348,15 @@ function App() {
                             <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
                               {day.day} ({day.date.toLocaleDateString()})
                             </Typography>
-                            <Checkbox
-                              checked={selectedRecipes.some(r => r._id === day.dinner._id)}
-                              onChange={() => handleRecipeSelection(day.dinner)}
-                            />
+                            <Box>
+                              <Checkbox
+                                checked={selectedRecipes.some(r => r._id === day.dinner._id)}
+                                onChange={() => handleRecipeSelection(day.dinner)}
+                              />
+                              <IconButton onClick={() => regenerateRecipe(index)}>
+                                <RefreshIcon />
+                              </IconButton>
+                            </Box>
                           </Box>
                           <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 'bold', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>
                             {day.dinner.name}
@@ -421,7 +415,7 @@ function App() {
               </Box>
             )}
 
-<Dialog open={openShoppingList} onClose={() => setOpenShoppingList(false)}>
+            <Dialog open={openShoppingList} onClose={() => setOpenShoppingList(false)}>
               <DialogTitle>Lista della Spesa</DialogTitle>
               <DialogContent>
                 {shoppingList.map((recipe, index) => (
