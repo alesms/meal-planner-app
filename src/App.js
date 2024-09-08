@@ -143,7 +143,7 @@ function App() {
     );
 
     if (availableRecipes.length === 0) {
-      usedRecipes.clear();
+      // Se non ci sono ricette disponibili, includiamo tutte le ricette della stagione
       availableRecipes = recipes.filter(recipe => 
         recipe.season === currentSeason || recipe.season === 'all'
       );
@@ -165,6 +165,7 @@ function App() {
 
     return availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
   };
+
 
   const handleRecipeSelection = (recipe) => {
     setSelectedRecipes(prev => {
