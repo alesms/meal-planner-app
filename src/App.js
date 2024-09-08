@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {
-  Container, Typography, TextField, Button, Chip, Card, CardContent,
+import { 
+  Container, Typography, TextField, Button, Chip, Card, CardContent, 
   List, ListItem, ListItemText, Box, AppBar, Toolbar, Grid, Paper,
   Checkbox, Dialog, DialogTitle, DialogContent, DialogActions,
   useMediaQuery, IconButton
@@ -13,7 +13,37 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import { useSpring, animated } from 'react-spring';
 
 const theme = createTheme({
-  // ... (il resto del tema rimane invariato)
+  palette: {
+    primary: {
+      main: '#ff6f00',
+    },
+    secondary: {
+      main: '#1e88e5',
+    },
+    background: {
+      default: '#f5f5f5',
+      paper: '#ffffff',
+    },
+  },
+  typography: {
+    fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
+    h1: {
+      fontWeight: 700,
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
+          transition: 'all 0.3s cubic-bezier(.25,.8,.25,1)',
+          '&:hover': {
+            boxShadow: '0 7px 14px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
+          },
+        },
+      },
+    },
+  },
 });
 
 const AnimatedCard = animated(Card);
@@ -34,40 +64,116 @@ function App() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // ... (useEffect e altre funzioni rimangono invariate)
+
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const response = await axios.get('https://meal-planner-app-cmgk.onrender.com/api/recipes');
+        setRecipes(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching recipes:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchRecipes();
+  }, []);
+
+  useEffect(() => {
+    const month = currentDate.getMonth();
+    if (month >= 2 && month <= 4) setCurrentSeason('primavera');
+    else if (month >= 5 && month <= 7) setCurrentSeason('estate');
+    else if (month >= 8 && month <= 10) setCurrentSeason('autunno');
+    else setCurrentSeason('inverno');
+
+    const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+    setCurrentDay(days[currentDate.getDay()]);
+  }, [currentDate]);
+
+  const addIngredient = () => {
+    if (newIngredient && !availableIngredients.includes(newIngredient)) {
+      setAvailableIngredients([...availableIngredients, newIngredient]);
+      setNewIngredient('');
+    }
+  };
+
+  const removeIngredient = (ingredient) => {
+    setAvailableIngredients(availableIngredients.filter(i => i !== ingredient));
+  };
 
   const generateMealPlan = () => {
     const weekPlan = [];
-    const usedRecipes = new Set(selectedRecipes.map(recipe => recipe._id));
-    let currentDateCopy = new Date();
-    const today = new Date();
+    const usedRecipes = new Set();
+    let currentDateCopy = new Date(); // Data corrente
+    const today = new Date(); // Salviamo la data di oggi per confronto
 
+    // Troviamo il prossimo lunedì se non siamo già in un giorno valido (lun-gio)
     while (currentDateCopy.getDay() < 1 || currentDateCopy.getDay() > 4) {
       currentDateCopy.setDate(currentDateCopy.getDate() + 1);
     }
 
-    while (weekPlan.length < 4) {
+    while (weekPlan.length < 4) {  // Generiamo un piano per 4 giorni (lunedì a giovedì)
       const dayOfWeek = currentDateCopy.getDay();
-
+      
       if (dayOfWeek >= 1 && dayOfWeek <= 4) {
         const isToday = currentDateCopy.toDateString() === today.toDateString();
         const dinner = getRandomRecipe(usedRecipes, isToday);
-
+        
         if (dinner) {
           usedRecipes.add(dinner._id);
+
           const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
-          weekPlan.push({
+          weekPlan.push({ 
             day: `${days[dayOfWeek]}${isToday ? ' (oggi)' : ''}`,
             date: new Date(currentDateCopy),
-            dinner
+            dinner 
           });
         }
       }
+
+      // Passa al giorno successivo
       currentDateCopy.setDate(currentDateCopy.getDate() + 1);
     }
 
     setMealPlan(weekPlan);
-    setAvailableIngredients([]);
+    setSelectedRecipes([]); // Resetta le ricette selezionate
+    setAvailableIngredients([]); // Resetta gli ingredienti disponibili
+  };
+
+  const getRandomRecipe = (usedRecipes, isToday) => {
+    // Filtra le ricette per stagione e non ancora utilizzate
+    let availableRecipes = recipes.filter(recipe => 
+      !usedRecipes.has(recipe._id) &&
+      (recipe.season === currentSeason || recipe.season === 'all')
+    );
+
+    // Se non ci sono ricette disponibili, resetta usedRecipes e riprova
+    if (availableRecipes.length === 0) {
+      usedRecipes.clear();
+      availableRecipes = recipes.filter(recipe => 
+        recipe.season === currentSeason || recipe.season === 'all'
+      );
+    }
+
+    // Se è oggi e ci sono ingredienti disponibili, prova a trovare una ricetta che li usa
+    if (isToday && availableIngredients.length > 0) {
+      const recipesWithIngredients = availableRecipes.filter(recipe =>
+        recipe.ingredients.some(ing => 
+          availableIngredients.some(avail => 
+            ing.toLowerCase().includes(avail.toLowerCase())
+          )
+        )
+      );
+
+      // Se troviamo ricette con gli ingredienti disponibili, scegliamo tra queste
+      if (recipesWithIngredients.length > 0) {
+        return recipesWithIngredients[Math.floor(Math.random() * recipesWithIngredients.length)];
+      }
+    }
+
+    // Altrimenti, scegliamo una ricetta casuale tra quelle disponibili
+    return availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
   };
 
   const handleRecipeSelection = (recipe) => {
@@ -81,6 +187,20 @@ function App() {
     });
   };
 
+  
+  const regenerateRecipe = (index) => {
+    const newMealPlan = [...mealPlan];
+    const usedRecipes = new Set(mealPlan.map(day => day.dinner._id));
+    const newRecipe = getRandomRecipe(usedRecipes, false);
+    if (newRecipe) {
+      newMealPlan[index] = {
+        ...newMealPlan[index],
+        dinner: newRecipe
+      };
+      setMealPlan(newMealPlan);
+    }
+  };
+
   const generateShoppingList = () => {
     const list = selectedRecipes.map(recipe => ({
       name: recipe.name,
@@ -90,8 +210,6 @@ function App() {
     setShoppingList(list);
     setOpenShoppingList(true);
   };
-
-
 
   const exportShoppingList = () => {
     let list = '';
@@ -130,11 +248,11 @@ function App() {
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
           height: '100vh',
           background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
         }}
@@ -148,7 +266,7 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{
+      <Box sx={{ 
         minHeight: '100vh',
         backgroundImage: `url('https://images.unsplash.com/photo-1495195134817-aeb325a55b65?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')`,
         backgroundSize: 'cover',
@@ -164,16 +282,50 @@ function App() {
         </AppBar>
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: isMobile ? 2 : 3 }}>
           <animated.div style={fadeIn}>
-            {/* ... (il codice per gli ingredienti disponibili rimane invariato) */}
+            <Paper elevation={3} sx={{ p: isMobile ? 2 : 4, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
+              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1.5rem' : '2.125rem' }}>
+                Ingredienti disponibili per oggi ({currentDay}, {currentDate.toLocaleDateString()})
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', mb: 2 }}>
+                <TextField
+                  value={newIngredient}
+                  onChange={(e) => setNewIngredient(e.target.value)}
+                  placeholder="Aggiungi un ingrediente"
+                  variant="outlined"
+                  size="small"
+                  sx={{ mr: isMobile ? 0 : 2, mb: isMobile ? 2 : 0, flexGrow: 1, width: isMobile ? '100%' : 'auto' }}
+                />
+                <Button 
+                  variant="contained" 
+                  onClick={addIngredient} 
+                  sx={{ 
+                    bgcolor: theme.palette.secondary.main,
+                    width: isMobile ? '100%' : 'auto'
+                  }}
+                >
+                  Aggiungi
+                </Button>
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {availableIngredients.map((ingredient, index) => (
+                  <Chip 
+                    key={index} 
+                    label={ingredient} 
+                    onDelete={() => removeIngredient(ingredient)} 
+                    sx={{ bgcolor: theme.palette.primary.light, color: 'white', mb: 1 }}
+                  />
+                ))}
+              </Box>
+            </Paper>
 
             <Box sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={generateMealPlan}
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={generateMealPlan} 
                 size="large"
-                sx={{
-                  fontSize: isMobile ? '1rem' : '1.2rem',
+                sx={{ 
+                  fontSize: isMobile ? '1rem' : '1.2rem', 
                   padding: isMobile ? '8px 16px' : '10px 30px',
                   boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
                   '&:hover': {
@@ -194,10 +346,10 @@ function App() {
                 <Grid container spacing={3}>
                   {mealPlan.map((day, index) => (
                     <Grid item xs={12} md={6} key={index}>
-                      <AnimatedCard
-                        sx={{
-                          height: '100%',
-                          display: 'flex',
+                      <AnimatedCard 
+                        sx={{ 
+                          height: '100%', 
+                          display: 'flex', 
                           flexDirection: 'column',
                           bgcolor: 'rgba(255, 255, 255, 0.9)',
                         }}
@@ -236,7 +388,7 @@ function App() {
                     </Grid>
                   ))}
                 </Grid>
-
+                
                 <Box sx={{ mt: 4, textAlign: 'center' }}>
                   <Button
                     variant="contained"
@@ -259,18 +411,17 @@ function App() {
                       Nota
                     </Typography>
                     <Typography variant="body2">
-                      Questo piano si basa sulla stagione corrente ({currentSeason}) e include 4 giorni lavorativi a partire da lunedì.
-                      Le ricette sono pensate per cene veloci da preparare dopo il lavoro, escludendo il weekend.
+                      Questo piano si basa sulla stagione corrente ({currentSeason}) e include 4 giorni lavorativi a partire da lunedì. 
+                      Le ricette sono pensate per cene veloci da preparare dopo il lavoro, escludendo il weekend. 
                       Gli ingredienti inseriti vengono considerati solo per la generazione del piano.
                       Si consiglia di preparare porzioni extra per il pranzo del giorno successivo.
                     </Typography>
                   </CardContent>
                 </Card>
-
               </Box>
             )}
 
-            <Dialog open={openShoppingList} onClose={() => setOpenShoppingList(false)}>
+<Dialog open={openShoppingList} onClose={() => setOpenShoppingList(false)}>
               <DialogTitle>Lista della Spesa</DialogTitle>
               <DialogContent>
                 {shoppingList.map((recipe, index) => (
