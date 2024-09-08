@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
   Container, Typography, TextField, Button, Chip, Card, CardContent, 
-  List, ListItem, ListItemText, Box, AppBar, Toolbar, Grid, Paper
+  List, ListItem, ListItemText, Box, AppBar, Toolbar, Grid, Paper,
+  useMediaQuery
 } from '@mui/material';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import { useSpring, animated } from 'react-spring';
 
@@ -54,10 +55,13 @@ function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
-        const response = await axios.get('http://localhost:5100/api/recipes');
+        const response = await axios.get('https://meal-planner-app-cmgk.onrender.com/api/recipes');
         setRecipes(response.data);
         setLoading(false);
       } catch (error) {
@@ -94,31 +98,34 @@ function App() {
   const generateMealPlan = () => {
     const weekPlan = [];
     const usedRecipes = new Set();
-    let currentDateCopy = new Date(currentDate);
-
-    for (let i = 0; i < 4; i++) {
-      while (currentDateCopy.getDay() === 5 || currentDateCopy.getDay() === 6) {
-        currentDateCopy.setDate(currentDateCopy.getDate() + 1);
+    let currentDateCopy = new Date(); // Usiamo sempre la data corrente come punto di partenza
+  
+    while (weekPlan.length < 4) {  // Generiamo un piano per 4 giorni (lunedì a giovedì)
+      const dayOfWeek = currentDateCopy.getDay();
+      
+      // Includi solo da lunedì (1) a giovedì (4)
+      if (dayOfWeek >= 1 && dayOfWeek <= 4) {
+        const isToday = weekPlan.length === 0;
+        const dinner = getRandomRecipe(usedRecipes, isToday);
+        
+        if (dinner) {
+          usedRecipes.add(dinner._id);
+  
+          const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+          weekPlan.push({ 
+            day: days[dayOfWeek], 
+            date: new Date(currentDateCopy),
+            dinner 
+          });
+        }
       }
-
-      const isToday = i === 0;
-      const dinner = getRandomRecipe(usedRecipes, isToday);
-      if (dinner) {
-        usedRecipes.add(dinner._id);
-
-        const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
-        weekPlan.push({ 
-          day: days[currentDateCopy.getDay()], 
-          date: new Date(currentDateCopy),
-          dinner 
-        });
-      }
-
+  
+      // Passa al giorno successivo
       currentDateCopy.setDate(currentDateCopy.getDate() + 1);
     }
-
+  
     setMealPlan(weekPlan);
-    setAvailableIngredients([]);
+    setAvailableIngredients([]); // Resetta gli ingredienti disponibili
   };
 
   const getRandomRecipe = (usedRecipes, isToday) => {
@@ -126,7 +133,7 @@ function App() {
       !usedRecipes.has(recipe._id) &&
       (recipe.season === currentSeason || recipe.season === 'all')
     );
-
+  
     if (isToday && availableIngredients.length > 0) {
       availableRecipes = availableRecipes.sort((a, b) => {
         const aMatches = a.ingredients.filter(ing => 
@@ -138,12 +145,12 @@ function App() {
         return bMatches - aMatches;
       });
     }
-
+  
     if (availableRecipes.length === 0) {
-      return recipes.find(recipe => !usedRecipes.has(recipe._id));
+      return recipes[Math.floor(Math.random() * recipes.length)];
     }
-
-    return availableRecipes[0];
+  
+    return availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
   };
 
   const fadeIn = useSpring({
@@ -163,7 +170,7 @@ function App() {
           background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
         }}
       >
-        <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
+        <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold', fontSize: isMobile ? '1.5rem' : '2.125rem' }}>
           Caricamento...
         </Typography>
       </Box>
@@ -181,27 +188,34 @@ function App() {
         <AppBar position="static" sx={{ backgroundColor: 'rgba(255, 111, 0, 0.8)' }}>
           <Toolbar>
             <RestaurantMenuIcon sx={{ mr: 2 }} />
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
               Pianificatore Cene
             </Typography>
           </Toolbar>
         </AppBar>
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: isMobile ? 2 : 3 }}>
           <animated.div style={fadeIn}>
-            <Paper elevation={3} sx={{ p: 4, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
-              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>
+            <Paper elevation={3} sx={{ p: isMobile ? 2 : 4, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
+              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1.5rem' : '2.125rem' }}>
                 Ingredienti disponibili per oggi ({currentDay}, {currentDate.toLocaleDateString()})
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', mb: 2 }}>
                 <TextField
                   value={newIngredient}
                   onChange={(e) => setNewIngredient(e.target.value)}
                   placeholder="Aggiungi un ingrediente"
                   variant="outlined"
                   size="small"
-                  sx={{ mr: 2, flexGrow: 1 }}
+                  sx={{ mr: isMobile ? 0 : 2, mb: isMobile ? 2 : 0, flexGrow: 1, width: isMobile ? '100%' : 'auto' }}
                 />
-                <Button variant="contained" onClick={addIngredient} sx={{ bgcolor: theme.palette.secondary.main }}>
+                <Button 
+                  variant="contained" 
+                  onClick={addIngredient} 
+                  sx={{ 
+                    bgcolor: theme.palette.secondary.main,
+                    width: isMobile ? '100%' : 'auto'
+                  }}
+                >
                   Aggiungi
                 </Button>
               </Box>
@@ -211,7 +225,7 @@ function App() {
                     key={index} 
                     label={ingredient} 
                     onDelete={() => removeIngredient(ingredient)} 
-                    sx={{ bgcolor: theme.palette.primary.light, color: 'white' }}
+                    sx={{ bgcolor: theme.palette.primary.light, color: 'white', mb: 1 }}
                   />
                 ))}
               </Box>
@@ -224,12 +238,13 @@ function App() {
                 onClick={generateMealPlan} 
                 size="large"
                 sx={{ 
-                  fontSize: '1.2rem', 
-                  padding: '10px 30px',
+                  fontSize: isMobile ? '1rem' : '1.2rem', 
+                  padding: isMobile ? '8px 16px' : '10px 30px',
                   boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
                   '&:hover': {
                     boxShadow: '0 7px 14px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
                   },
+                  width: isMobile ? '100%' : 'auto'
                 }}
               >
                 Genera Piano Cene
@@ -238,7 +253,7 @@ function App() {
 
             {mealPlan.length > 0 && (
               <Box sx={{ mb: 4 }}>
-                <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>
+                <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1.5rem' : '2.125rem' }}>
                   Piano Cene ({currentSeason})
                 </Typography>
                 <Grid container spacing={3}>
@@ -253,11 +268,11 @@ function App() {
                         }}
                       >
                         <CardContent>
-                          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main, fontWeight: 'bold' }}>
+                          <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
                             {day.day} ({day.date.toLocaleDateString()})
                             {index === 0 && " - Oggi"}
                           </Typography>
-                          <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                          <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 'bold', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>
                             {day.dinner.name}
                           </Typography>
                           <Typography variant="body2" gutterBottom>
@@ -269,7 +284,7 @@ function App() {
                           <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', mt: 2 }}>
                             Istruzioni:
                           </Typography>
-                          <List>
+                          <List dense={isMobile}>
                             {day.dinner.instructions.map((step, i) => (
                               <ListItem key={i}>
                                 <ListItemText primary={`${i + 1}. ${step}`} />
@@ -282,10 +297,9 @@ function App() {
                   ))}
                 </Grid>
 
-                {/* Nota che appare solo dopo la generazione del piano pasti */}
                 <Card sx={{ bgcolor: 'rgba(255, 249, 196, 0.9)', mt: 4 }}>
                   <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>
+                    <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
                       Nota
                     </Typography>
                     <Typography variant="body2">
