@@ -4,11 +4,12 @@ import {
   Container, Typography, TextField, Button, Chip, Card, CardContent, 
   List, ListItem, ListItemText, Box, AppBar, Toolbar, Grid, Paper,
   Checkbox, Dialog, DialogTitle, DialogContent, DialogActions,
-  useMediaQuery
+  useMediaQuery, IconButton
 } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { useSpring, animated } from 'react-spring';
 
 const theme = createTheme({
@@ -57,7 +58,7 @@ function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [selectedRecipes, setSelectedRecipes] = useState([]);
-  const [shoppingList, setShoppingList] = useState([]);
+  const [shoppingList, setShoppingList] = useState({});
   const [openShoppingList, setOpenShoppingList] = useState(false);
 
   const theme = useTheme();
@@ -135,7 +136,7 @@ function App() {
     }
 
     setMealPlan(weekPlan);
-    setSelectedRecipes([]);
+    setSelectedRecipes([]); // Resetta le ricette selezionate
     setAvailableIngredients([]); // Resetta gli ingredienti disponibili
   };
 
@@ -175,22 +176,43 @@ function App() {
   };
 
   const handleRecipeSelection = (recipe) => {
-    setSelectedRecipes(prev => 
-      prev.includes(recipe) 
-        ? prev.filter(r => r !== recipe) 
-        : [...prev, recipe]
-    );
+    setSelectedRecipes(prev => {
+      const isSelected = prev.some(r => r._id === recipe._id);
+      if (isSelected) {
+        return prev.filter(r => r._id !== recipe._id);
+      } else {
+        return [...prev, recipe];
+      }
+    });
+  };
+
+  const regenerateRecipe = (index) => {
+    const newMealPlan = [...mealPlan];
+    const usedRecipes = new Set(mealPlan.map(day => day.dinner._id));
+    const newRecipe = getRandomRecipe(usedRecipes, false);
+    if (newRecipe) {
+      newMealPlan[index] = {
+        ...newMealPlan[index],
+        dinner: newRecipe
+      };
+      setMealPlan(newMealPlan);
+    }
   };
 
   const generateShoppingList = () => {
-    const ingredients = selectedRecipes.flatMap(recipe => recipe.ingredients);
-    const uniqueIngredients = [...new Set(ingredients)];
-    setShoppingList(uniqueIngredients);
+    const list = {};
+    selectedRecipes.forEach(recipe => {
+      list[recipe.name] = recipe.ingredients.map(ing => `${ing} (per 3 persone)`);
+    });
+    setShoppingList(list);
     setOpenShoppingList(true);
   };
 
   const exportShoppingList = () => {
-    const list = shoppingList.join('\n');
+    let list = '';
+    Object.entries(shoppingList).forEach(([recipeName, ingredients]) => {
+      list += `${recipeName}:\n${ingredients.join('\n')}\n\n`;
+    });
     const blob = new Blob([list], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -202,9 +224,13 @@ function App() {
 
   const shareToPhone = () => {
     if (navigator.share) {
+      let text = '';
+      Object.entries(shoppingList).forEach(([recipeName, ingredients]) => {
+        text += `${recipeName}:\n${ingredients.join('\n')}\n\n`;
+      });
       navigator.share({
         title: 'La mia lista della spesa',
-        text: shoppingList.join('\n'),
+        text: text,
       }).catch(console.error);
     } else {
       alert("La condivisione non è supportata su questo dispositivo. Prova ad esportare la lista invece.");
@@ -216,7 +242,6 @@ function App() {
     from: { opacity: 0 },
     config: { duration: 1000 },
   });
-
 
   if (loading) {
     return (
@@ -331,10 +356,15 @@ function App() {
                             <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
                               {day.day} ({day.date.toLocaleDateString()})
                             </Typography>
-                            <Checkbox
-                              checked={selectedRecipes.includes(day.dinner)}
-                              onChange={() => handleRecipeSelection(day.dinner)}
-                            />
+                            <Box>
+                              <Checkbox
+                                checked={selectedRecipes.some(r => r._id === day.dinner._id)}
+                                onChange={() => handleRecipeSelection(day.dinner)}
+                              />
+                              <IconButton onClick={() => regenerateRecipe(index)}>
+                                <RefreshIcon />
+                              </IconButton>
+                            </Box>
                           </Box>
                           <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 'bold', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>
                             {day.dinner.name}
@@ -343,7 +373,7 @@ function App() {
                             <strong>Tempo di preparazione:</strong> {day.dinner.prepTime} minuti
                           </Typography>
                           <Typography variant="body2" gutterBottom>
-                            <strong>Ingredienti:</strong> {day.dinner.ingredients.join(", ")}
+                            <strong>Ingredienti (per 3 persone):</strong> {day.dinner.ingredients.join(", ")}
                           </Typography>
                           <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', mt: 2 }}>
                             Istruzioni:
@@ -377,7 +407,6 @@ function App() {
                   </Button>
                 </Box>
 
-                {/* Nota aggiunta qui */}
                 <Card sx={{ bgcolor: 'rgba(255, 249, 196, 0.9)', mt: 4 }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
@@ -397,13 +426,18 @@ function App() {
             <Dialog open={openShoppingList} onClose={() => setOpenShoppingList(false)}>
               <DialogTitle>Lista della Spesa</DialogTitle>
               <DialogContent>
-                <List>
-                  {shoppingList.map((item, index) => (
-                    <ListItem key={index}>
-                      <ListItemText primary={item} />
-                    </ListItem>
-                  ))}
-                </List>
+                {Object.entries(shoppingList).map(([recipeName, ingredients]) => (
+                  <Box key={recipeName} sx={{ mb: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{recipeName}</Typography>
+                    <List dense>
+                      {ingredients.map((item, index) => (
+                        <ListItem key={index}>
+                          <ListItemText primary={item} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                ))}
               </DialogContent>
               <DialogActions>
                 <Button onClick={exportShoppingList}>Esporta</Button>
