@@ -98,14 +98,19 @@ function App() {
   const generateMealPlan = () => {
     const weekPlan = [];
     const usedRecipes = new Set();
-    let currentDateCopy = new Date(); // Usiamo sempre la data corrente come punto di partenza
+    let currentDateCopy = new Date(); // Data corrente
+    const today = new Date(); // Salviamo la data di oggi per confronto
+  
+    // Troviamo il prossimo lunedì se non siamo già in un giorno valido (lun-gio)
+    while (currentDateCopy.getDay() < 1 || currentDateCopy.getDay() > 4) {
+      currentDateCopy.setDate(currentDateCopy.getDate() + 1);
+    }
   
     while (weekPlan.length < 4) {  // Generiamo un piano per 4 giorni (lunedì a giovedì)
       const dayOfWeek = currentDateCopy.getDay();
       
-      // Includi solo da lunedì (1) a giovedì (4)
       if (dayOfWeek >= 1 && dayOfWeek <= 4) {
-        const isToday = weekPlan.length === 0;
+        const isToday = currentDateCopy.toDateString() === today.toDateString();
         const dinner = getRandomRecipe(usedRecipes, isToday);
         
         if (dinner) {
@@ -113,7 +118,7 @@ function App() {
   
           const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
           weekPlan.push({ 
-            day: days[dayOfWeek], 
+            day: `${days[dayOfWeek]}${isToday ? ' (oggi)' : ''}`,
             date: new Date(currentDateCopy),
             dinner 
           });
