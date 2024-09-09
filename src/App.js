@@ -10,7 +10,7 @@ import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const theme = createTheme({
   palette: {
@@ -295,7 +295,11 @@ function App() {
           </Toolbar>
         </AppBar>
         <Container maxWidth="lg" sx={{ mt: 6, mb: 6, px: isMobile ? 2 : 3 }}>
-          <Fade in={true} timeout={1000}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             <Paper elevation={3} sx={{ p: isMobile ? 3 : 5, backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '15px' }}>
               <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', marginBottom: '1.5rem' }}>
                 Ingredienti Disponibili per Oggi
@@ -323,17 +327,26 @@ function App() {
                 </Button>
               </Box>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {availableIngredients.map((ingredient, index) => (
-                  <Chip
-                    key={index}
-                    label={ingredient}
-                    onDelete={() => removeIngredient(ingredient)}
-                    sx={{ bgcolor: theme.palette.primary.light, color: 'white', mb: 1, fontWeight: 500 }}
-                  />
-                ))}
+                <AnimatePresence>
+                  {availableIngredients.map((ingredient, index) => (
+                    <motion.div
+                      key={ingredient}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Chip
+                        label={ingredient}
+                        onDelete={() => removeIngredient(ingredient)}
+                        sx={{ bgcolor: theme.palette.primary.light, color: 'white', mb: 1, fontWeight: 500 }}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </Box>
             </Paper>
-          </Fade>
+          </motion.div>
 
           <Box sx={{ mt: 5, mb: 5, textAlign: 'center' }}>
             <Button
