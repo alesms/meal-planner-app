@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import {
+import { 
   Container, Typography, TextField, Button, Chip, Card, CardContent,
   List, ListItem, ListItemText, Box, AppBar, Toolbar, Grid, Paper,
   Checkbox, Dialog, DialogTitle, DialogContent, DialogActions,
-  useMediaQuery, IconButton
+  useMediaQuery, IconButton, Divider
 } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
-import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import { useSpring, animated } from 'react-spring';
+import RestaurantMenuIcon from 'lucide-react/dist/esm/icons/utensils';
+import ShoppingCartIcon from 'lucide-react/dist/esm/icons/shopping-cart';
+import RefreshIcon from 'lucide-react/dist/esm/icons/refresh-cw';
+import { motion } from 'framer-motion';
+import { Camera, ShoppingCart, RefreshCw } from 'lucide-react';
+import { LineChart, XAxis, YAxis, CartesianGrid, Line, ResponsiveContainer } from 'recharts';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#ff6f00',
+      main: '#4a148c',
     },
     secondary: {
-      main: '#1e88e5',
+      main: '#ff6f00',
     },
     background: {
       default: '#f5f5f5',
@@ -26,7 +29,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
+    fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
     h1: {
       fontWeight: 700,
     },
@@ -35,18 +38,29 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
+          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+          borderRadius: '12px',
           transition: 'all 0.3s cubic-bezier(.25,.8,.25,1)',
           '&:hover': {
-            boxShadow: '0 7px 14px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
+            boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
+            transform: 'translateY(-4px)',
           },
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '8px',
+          textTransform: 'none',
+          fontWeight: 600,
         },
       },
     },
   },
 });
 
-const AnimatedCard = animated(Card);
+const MotionCard = motion(Card);
 
 function App() {
   const [recipes, setRecipes] = useState([]);
@@ -266,154 +280,191 @@ function App() {
     <ThemeProvider theme={theme}>
       <Box sx={{
         minHeight: '100vh',
-        backgroundImage: `url('https://images.unsplash.com/photo-1495195134817-aeb325a55b65?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')`,
+        backgroundImage: `url('https://images.unsplash.com/photo-1606787619248-f301830a5a57?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')`,
         backgroundSize: 'cover',
         backgroundAttachment: 'fixed',
       }}>
-        <AppBar position="static" sx={{ backgroundColor: 'rgba(255, 111, 0, 0.8)' }}>
+        <AppBar position="static" sx={{ backgroundColor: 'rgba(74, 20, 140, 0.9)' }}>
           <Toolbar>
-            <RestaurantMenuIcon sx={{ mr: 2 }} />
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
-              Pianificatore Cene
+            <RestaurantMenuIcon size={24} color="white" />
+            <Typography variant="h6" component="div" sx={{ ml: 2, flexGrow: 1, fontWeight: 'bold', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
+              Pianificatore Intelligente di Pasti
             </Typography>
           </Toolbar>
         </AppBar>
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: isMobile ? 2 : 3 }}>
-          <animated.div style={fadeIn}>
-            <Paper elevation={3} sx={{ p: isMobile ? 2 : 4, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
-              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1.5rem' : '2.125rem' }}>
-                Ingredienti disponibili per oggi ({currentDay}, {currentDate.toLocaleDateString()})
+        <Container maxWidth="lg" sx={{ mt: 6, mb: 6, px: isMobile ? 2 : 3 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <Paper elevation={3} sx={{ p: isMobile ? 3 : 5, backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '16px' }}>
+              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1.6rem' : '2.2rem', mb: 3 }}>
+                Ingredienti Disponibili
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', mb: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', mb: 3 }}>
                 <TextField
                   value={newIngredient}
                   onChange={(e) => setNewIngredient(e.target.value)}
                   placeholder="Aggiungi un ingrediente"
                   variant="outlined"
-                  size="small"
-                  sx={{ mr: isMobile ? 0 : 2, mb: isMobile ? 2 : 0, flexGrow: 1, width: isMobile ? '100%' : 'auto' }}
+                  size="medium"
+                  sx={{ 
+                    mr: isMobile ? 0 : 2, 
+                    mb: isMobile ? 2 : 0, 
+                    flexGrow: 1, 
+                    width: isMobile ? '100%' : 'auto',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '8px',
+                    }
+                  }}
                 />
                 <Button
                   variant="contained"
                   onClick={addIngredient}
                   sx={{
                     bgcolor: theme.palette.secondary.main,
-                    width: isMobile ? '100%' : 'auto'
+                    width: isMobile ? '100%' : 'auto',
+                    py: 1.5,
+                    px: 4,
+                    fontSize: '1rem',
                   }}
                 >
                   Aggiungi
                 </Button>
               </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                 {availableIngredients.map((ingredient, index) => (
                   <Chip
                     key={index}
                     label={ingredient}
                     onDelete={() => removeIngredient(ingredient)}
-                    sx={{ bgcolor: theme.palette.primary.light, color: 'white', mb: 1 }}
+                    sx={{ 
+                      bgcolor: theme.palette.primary.light, 
+                      color: 'white', 
+                      mb: 1,
+                      fontWeight: 500,
+                      borderRadius: '16px',
+                      '&:hover': {
+                        bgcolor: theme.palette.primary.dark,
+                      }
+                    }}
                   />
                 ))}
               </Box>
             </Paper>
 
-            <Box sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
+            <Box sx={{ mt: 5, mb: 5, textAlign: 'center' }}>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={generateMealPlan}
                 size="large"
                 sx={{
-                  fontSize: isMobile ? '1rem' : '1.2rem',
-                  padding: isMobile ? '8px 16px' : '10px 30px',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
+                  fontSize: isMobile ? '1.1rem' : '1.3rem',
+                  padding: isMobile ? '12px 24px' : '14px 36px',
+                  borderRadius: '30px',
+                  boxShadow: '0 6px 12px rgba(0,0,0,0.15)',
                   '&:hover': {
-                    boxShadow: '0 7px 14px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
+                    boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+                    transform: 'translateY(-2px)',
                   },
                   width: isMobile ? '100%' : 'auto'
                 }}
               >
-                Genera Piano Cene
+                Genera Piano Pasti
               </Button>
             </Box>
 
             {mealPlan.length > 0 && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1.5rem' : '2.125rem' }}>
-                  Piano Cene ({currentSeason})
+              <Box sx={{ mb: 5 }}>
+                <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1.6rem' : '2.2rem', mb: 3 }}>
+                  Piano Pasti ({currentSeason})
                 </Typography>
-                <Grid container spacing={3}>
+                <Grid container spacing={4}>
                   {mealPlan.map((day, index) => (
                     <Grid item xs={12} md={6} key={index}>
-                      <AnimatedCard
+                      <MotionCard
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
                         sx={{
                           height: '100%',
                           display: 'flex',
                           flexDirection: 'column',
-                          bgcolor: 'rgba(255, 255, 255, 0.9)',
+                          bgcolor: 'rgba(255, 255, 255, 0.95)',
                         }}
                       >
                         <CardContent>
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
+                          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                            <Typography variant="h6" sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
                               {day.day} ({day.date.toLocaleDateString()})
                             </Typography>
                             <Box>
                               <Checkbox
                                 checked={selectedRecipes.some(r => r._id === day.dinner._id)}
                                 onChange={() => handleRecipeSelection(day.dinner)}
+                                color="secondary"
                               />
-                              <IconButton onClick={() => regenerateRecipe(index)}>
-                                <RefreshIcon />
+                              <IconButton onClick={() => regenerateRecipe(index)} color="primary">
+                                <RefreshIcon size={20} />
                               </IconButton>
                             </Box>
                           </Box>
-                          <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 'bold', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>
+                          <Divider sx={{ mb: 2 }} />
+                          <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 'bold', fontSize: isMobile ? '1.3rem' : '1.5rem' }}>
                             {day.dinner.name}
                           </Typography>
-                          <Typography variant="body2" gutterBottom>
+                          <Typography variant="body2" gutterBottom sx={{ mb: 2 }}>
                             <strong>Tempo di preparazione:</strong> {day.dinner.prepTime} minuti
                           </Typography>
-                          <Typography variant="body2" gutterBottom>
+                          <Typography variant="body2" gutterBottom sx={{ mb: 2 }}>
                             <strong>Ingredienti (per 3 persone):</strong> {day.dinner.ingredients.join(", ")}
                           </Typography>
-                          <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', mt: 2 }}>
+                          <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', mt: 3, mb: 1 }}>
                             Istruzioni:
                           </Typography>
                           <List dense={isMobile}>
                             {day.dinner.instructions.map((step, i) => (
-                              <ListItem key={i}>
-                                <ListItemText primary={`${i + 1}. ${step}`} />
+                              <ListItem key={i} sx={{ pl: 0 }}>
+                                <ListItemText 
+                                  primary={`${i + 1}. ${step}`}
+                                  primaryTypographyProps={{ 
+                                    sx: { fontSize: isMobile ? '0.9rem' : '1rem' } 
+                                  }}
+                                />
                               </ListItem>
                             ))}
                           </List>
                         </CardContent>
-                      </AnimatedCard>
+                      </MotionCard>
                     </Grid>
                   ))}
                 </Grid>
 
-                <Box sx={{ mt: 4, textAlign: 'center' }}>
+                <Box sx={{ mt: 5, textAlign: 'center' }}>
                   <Button
                     variant="contained"
                     color="secondary"
                     onClick={generateShoppingList}
-                    startIcon={<ShoppingCartIcon />}
+                    startIcon={<ShoppingCartIcon size={20} />}
                     disabled={selectedRecipes.length === 0}
                     sx={{
-                      fontSize: isMobile ? '0.9rem' : '1rem',
-                      padding: isMobile ? '6px 12px' : '8px 16px',
+                      fontSize: isMobile ? '1rem' : '1.1rem',
+                      padding: isMobile ? '10px 20px' : '12px 24px',
+                      borderRadius: '30px',
                     }}
                   >
                     Genera Lista della Spesa
                   </Button>
                 </Box>
 
-                <Card sx={{ bgcolor: 'rgba(255, 249, 196, 0.9)', mt: 4 }}>
+                <Card sx={{ bgcolor: 'rgba(255, 253, 231, 0.9)', mt: 5, borderRadius: '16px' }}>
                   <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
-                      Nota
+                    <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1.1rem' : '1.3rem', mb: 2 }}>
+                      Nota Importante
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
                       Questo piano si basa sulla stagione corrente ({currentSeason}) e include 4 giorni lavorativi a partire da lunedì.
                       Le ricette sono pensate per cene veloci da preparare dopo il lavoro, escludendo il weekend.
                       Gli ingredienti inseriti vengono considerati solo per la generazione del piano.
@@ -424,38 +475,60 @@ function App() {
               </Box>
             )}
 
-            <Dialog open={openShoppingList} onClose={handleCloseShoppingList}>
-              <DialogTitle>Lista della Spesa</DialogTitle>
-              <DialogContent>
+            <Dialog 
+              open={openShoppingList} 
+              onClose={handleCloseShoppingList}
+              fullWidth
+              maxWidth="md"
+              PaperProps={{
+                sx: {
+                  borderRadius: '16px',
+                  bgcolor: 'rgba(255, 255, 255, 0.98)',
+                }
+              }}
+            >
+              <DialogTitle sx={{ bgcolor: theme.palette.primary.main, color: 'white', fontWeight: 'bold' }}>
+                Lista della Spesa
+              </DialogTitle>
+              <DialogContent dividers>
                 {shoppingList.map((recipe, index) => (
-                  <Box key={index} sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{recipe.name}</Typography>
-                    <Typography variant="subtitle1" sx={{ mt: 1, fontWeight: 'bold' }}>Ingredienti:</Typography>
+                  <Box key={index} sx={{ mb: 4 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme.palette.secondary.main, mb: 2 }}>
+                      {recipe.name}
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Ingredienti:</Typography>
                     <List dense>
                       {recipe.ingredients.map((item, idx) => (
-                        <ListItem key={idx}>
+                        <ListItem key={idx} sx={{ pl: 0 }}>
                           <ListItemText primary={item} />
                         </ListItem>
                       ))}
                     </List>
-                    <Typography variant="subtitle1" sx={{ mt: 2, fontWeight: 'bold' }}>Istruzioni:</Typography>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 3, mb: 1 }}>Istruzioni:</Typography>
                     <List dense>
                       {recipe.instructions.map((step, idx) => (
-                        <ListItem key={idx}>
+                        <ListItem key={idx} sx={{ pl: 0 }}>
                           <ListItemText primary={`${idx + 1}. ${step}`} />
                         </ListItem>
                       ))}
                     </List>
+                    {index < shoppingList.length - 1 && <Divider sx={{ my: 3 }} />}
                   </Box>
                 ))}
               </DialogContent>
-              <DialogActions>
-                <Button onClick={exportShoppingList}>Esporta</Button>
-                <Button onClick={shareToPhone}>Invia al Telefono</Button>
-                <Button onClick={handleCloseShoppingList}>Chiudi</Button>
+              <DialogActions sx={{ justifyContent: 'space-between', p: 3 }}>
+                <Button onClick={exportShoppingList} variant="outlined" color="primary">
+                  Esporta
+                </Button>
+                <Button onClick={shareToPhone} variant="outlined" color="secondary">
+                  Invia al Telefono
+                </Button>
+                <Button onClick={handleCloseShoppingList} variant="contained" color="primary">
+                  Chiudi
+                </Button>
               </DialogActions>
             </Dialog>
-          </animated.div>
+          </motion.div>
         </Container>
       </Box>
     </ThemeProvider>
