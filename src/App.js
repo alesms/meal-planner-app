@@ -4,13 +4,13 @@ import {
   Container, Typography, TextField, Button, Chip, Card, CardContent,
   List, ListItem, ListItemText, Box, AppBar, Toolbar, Grid, Paper,
   Checkbox, Dialog, DialogTitle, DialogContent, DialogActions,
-  useMediaQuery, IconButton
+  useMediaQuery, IconButton, Fade
 } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { useSpring, animated } from 'react-spring';
+import { motion } from 'framer-motion';
 
 const theme = createTheme({
   palette: {
@@ -43,10 +43,26 @@ const theme = createTheme({
         },
       },
     },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '50px',
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: '16px',
+        },
+      },
+    },
   },
 });
 
-const AnimatedCard = animated(Card);
+const MotionCard = motion(Card);
 
 function App() {
   const [recipes, setRecipes] = useState([]);
@@ -266,39 +282,41 @@ function App() {
     <ThemeProvider theme={theme}>
       <Box sx={{
         minHeight: '100vh',
-        backgroundImage: `url('https://images.unsplash.com/photo-1495195134817-aeb325a55b65?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')`,
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url('https://images.unsplash.com/photo-1495195134817-aeb325a55b65?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')`,
         backgroundSize: 'cover',
         backgroundAttachment: 'fixed',
       }}>
-        <AppBar position="static" sx={{ backgroundColor: 'rgba(255, 111, 0, 0.8)' }}>
+        <AppBar position="static" sx={{ backgroundColor: 'rgba(255, 111, 0, 0.9)', boxShadow: 'none' }}>
           <Toolbar>
-            <RestaurantMenuIcon sx={{ mr: 2 }} />
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
-              Pianificatore Cene
+            <RestaurantMenuIcon sx={{ mr: 2, fontSize: '2rem' }} />
+            <Typography variant="h5" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', letterSpacing: '1px' }}>
+              Pianificatore Cene Gourmet
             </Typography>
           </Toolbar>
         </AppBar>
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: isMobile ? 2 : 3 }}>
-          <animated.div style={fadeIn}>
-            <Paper elevation={3} sx={{ p: isMobile ? 2 : 4, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
-              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1.5rem' : '2.125rem' }}>
-                Ingredienti disponibili per oggi ({currentDay}, {currentDate.toLocaleDateString()})
+        <Container maxWidth="lg" sx={{ mt: 6, mb: 6, px: isMobile ? 2 : 3 }}>
+          <Fade in={true} timeout={1000}>
+            <Paper elevation={3} sx={{ p: isMobile ? 3 : 5, backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '15px' }}>
+              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', marginBottom: '1.5rem' }}>
+                Ingredienti Disponibili per Oggi
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', mb: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', mb: 3 }}>
                 <TextField
                   value={newIngredient}
                   onChange={(e) => setNewIngredient(e.target.value)}
                   placeholder="Aggiungi un ingrediente"
                   variant="outlined"
                   size="small"
-                  sx={{ mr: isMobile ? 0 : 2, mb: isMobile ? 2 : 0, flexGrow: 1, width: isMobile ? '100%' : 'auto' }}
+                  sx={{ mr: isMobile ? 0 : 2, mb: isMobile ? 2 : 0, flexGrow: 1, '& .MuiOutlinedInput-root': { borderRadius: '25px' } }}
                 />
                 <Button
                   variant="contained"
                   onClick={addIngredient}
                   sx={{
                     bgcolor: theme.palette.secondary.main,
-                    width: isMobile ? '100%' : 'auto'
+                    width: isMobile ? '100%' : 'auto',
+                    py: 1,
+                    px: 3
                   }}
                 >
                   Aggiungi
@@ -310,152 +328,176 @@ function App() {
                     key={index}
                     label={ingredient}
                     onDelete={() => removeIngredient(ingredient)}
-                    sx={{ bgcolor: theme.palette.primary.light, color: 'white', mb: 1 }}
+                    sx={{ bgcolor: theme.palette.primary.light, color: 'white', mb: 1, fontWeight: 500 }}
                   />
                 ))}
               </Box>
             </Paper>
+          </Fade>
 
-            <Box sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={generateMealPlan}
-                size="large"
-                sx={{
-                  fontSize: isMobile ? '1rem' : '1.2rem',
-                  padding: isMobile ? '8px 16px' : '10px 30px',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
-                  '&:hover': {
-                    boxShadow: '0 7px 14px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
-                  },
-                  width: isMobile ? '100%' : 'auto'
-                }}
-              >
-                Genera Piano Cene
-              </Button>
-            </Box>
+          <Box sx={{ mt: 5, mb: 5, textAlign: 'center' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={generateMealPlan}
+              size="large"
+              sx={{
+                fontSize: '1.2rem',
+                padding: '12px 40px',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
+                '&:hover': {
+                  boxShadow: '0 7px 14px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
+                },
+                width: isMobile ? '100%' : 'auto'
+              }}
+            >
+              Genera Piano Cene
+            </Button>
+          </Box>
 
-            {mealPlan.length > 0 && (
-              <Box sx={{ mb: 4 }}>
-                <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1.5rem' : '2.125rem' }}>
-                  Piano Cene ({currentSeason})
-                </Typography>
-                <Grid container spacing={3}>
-                  {mealPlan.map((day, index) => (
-                    <Grid item xs={12} md={6} key={index}>
-                      <AnimatedCard
-                        sx={{
-                          height: '100%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          bgcolor: 'rgba(255, 255, 255, 0.9)',
-                        }}
-                      >
-                        <CardContent>
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography variant="h6" gutterBottom sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
-                              {day.day} ({day.date.toLocaleDateString()})
-                            </Typography>
-                            <Box>
-                              <Checkbox
-                                checked={selectedRecipes.some(r => r._id === day.dinner._id)}
-                                onChange={() => handleRecipeSelection(day.dinner)}
-                              />
-                              <IconButton onClick={() => regenerateRecipe(index)}>
-                                <RefreshIcon />
-                              </IconButton>
-                            </Box>
+          {mealPlan.length > 0 && (
+            <Box sx={{ mb: 5 }}>
+              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', marginBottom: '2rem' }}>
+                Piano Cene - {currentSeason.charAt(0).toUpperCase() + currentSeason.slice(1)}
+              </Typography>
+              <Grid container spacing={4}>
+                {mealPlan.map((day, index) => (
+                  <Grid item xs={12} md={6} key={index}>
+                    <MotionCard
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      sx={{
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        bgcolor: 'rgba(255, 255, 255, 0.95)',
+                        borderRadius: '15px',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                          <Typography variant="h6" sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: '1.2rem' }}>
+                            {day.day} ({day.date.toLocaleDateString()})
+                          </Typography>
+                          <Box>
+                            <Checkbox
+                              checked={selectedRecipes.some(r => r._id === day.dinner._id)}
+                              onChange={() => handleRecipeSelection(day.dinner)}
+                              color="primary"
+                            />
+                            <IconButton onClick={() => regenerateRecipe(index)} color="primary">
+                              <RefreshIcon />
+                            </IconButton>
                           </Box>
-                          <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 'bold', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>
-                            {day.dinner.name}
-                          </Typography>
-                          <Typography variant="body2" gutterBottom>
-                            <strong>Tempo di preparazione:</strong> {day.dinner.prepTime} minuti
-                          </Typography>
-                          <Typography variant="body2" gutterBottom>
-                            <strong>Ingredienti (per 3 persone):</strong> {day.dinner.ingredients.join(", ")}
-                          </Typography>
-                          <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', mt: 2 }}>
-                            Istruzioni:
-                          </Typography>
-                          <List dense={isMobile}>
-                            {day.dinner.instructions.map((step, i) => (
-                              <ListItem key={i}>
-                                <ListItemText primary={`${i + 1}. ${step}`} />
-                              </ListItem>
-                            ))}
-                          </List>
-                        </CardContent>
-                      </AnimatedCard>
-                    </Grid>
-                  ))}
-                </Grid>
-
-                <Box sx={{ mt: 4, textAlign: 'center' }}>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={generateShoppingList}
-                    startIcon={<ShoppingCartIcon />}
-                    disabled={selectedRecipes.length === 0}
-                    sx={{
-                      fontSize: isMobile ? '0.9rem' : '1rem',
-                      padding: isMobile ? '6px 12px' : '8px 16px',
-                    }}
-                  >
-                    Genera Lista della Spesa
-                  </Button>
-                </Box>
-
-                <Card sx={{ bgcolor: 'rgba(255, 249, 196, 0.9)', mt: 4 }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
-                      Nota
-                    </Typography>
-                    <Typography variant="body2">
-                      Questo piano si basa sulla stagione corrente ({currentSeason}) e include 4 giorni lavorativi a partire da lunedì.
-                      Le ricette sono pensate per cene veloci da preparare dopo il lavoro, escludendo il weekend.
-                      Gli ingredienti inseriti vengono considerati solo per la generazione del piano.
-                      Si consiglia di preparare porzioni extra per il pranzo del giorno successivo.
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Box>
-            )}
-
-            <Dialog open={openShoppingList} onClose={handleCloseShoppingList}>
-              <DialogTitle>Lista della Spesa</DialogTitle>
-              <DialogContent>
-                {shoppingList.map((recipe, index) => (
-                  <Box key={index} sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{recipe.name}</Typography>
-                    <Typography variant="subtitle1" sx={{ mt: 1, fontWeight: 'bold' }}>Ingredienti:</Typography>
-                    <List dense>
-                      {recipe.ingredients.map((item, idx) => (
-                        <ListItem key={idx}>
-                          <ListItemText primary={item} />
-                        </ListItem>
-                      ))}
-                    </List>
-                    <Typography variant="subtitle1" sx={{ mt: 2, fontWeight: 'bold' }}>Istruzioni:</Typography>
-                    <List dense>
-                      {recipe.instructions.map((step, idx) => (
-                        <ListItem key={idx}>
-                          <ListItemText primary={`${idx + 1}. ${step}`} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
+                        </Box>
+                        <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1.5rem', mb: 2 }}>
+                          {day.dinner.name}
+                        </Typography>
+                        <Typography variant="body2" gutterBottom sx={{ fontSize: '0.9rem', color: '#666' }}>
+                          <strong>Tempo di preparazione:</strong> {day.dinner.prepTime} minuti
+                        </Typography>
+                        <Typography variant="body2" gutterBottom sx={{ fontSize: '0.9rem', color: '#666', mb: 2 }}>
+                          <strong>Ingredienti (per 3 persone):</strong> {day.dinner.ingredients.join(", ")}
+                        </Typography>
+                        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>
+                          Istruzioni:
+                        </Typography>
+                        <List dense={isMobile}>
+                          {day.dinner.instructions.map((step, i) => (
+                            <ListItem key={i} sx={{ pl: 0 }}>
+                              <ListItemText 
+                                primary={`${i + 1}. ${step}`} 
+                                primaryTypographyProps={{ 
+                                  sx: { fontSize: '0.9rem', lineHeight: 1.5 } 
+                                }}
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </CardContent>
+                    </MotionCard>
+                  </Grid>
                 ))}
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={exportShoppingList}>Esporta</Button>
-                <Button onClick={shareToPhone}>Invia al Telefono</Button>
-                <Button onClick={handleCloseShoppingList}>Chiudi</Button>
-              </DialogActions>
-            </Dialog>
-          </animated.div>
+              </Grid>
+
+              <Box sx={{ mt: 5, textAlign: 'center' }}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={generateShoppingList}
+                  startIcon={<ShoppingCartIcon />}
+                  disabled={selectedRecipes.length === 0}
+                  sx={{
+                    fontSize: '1rem',
+                    padding: '10px 30px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    '&:hover': {
+                      boxShadow: '0 6px 10px rgba(0,0,0,0.15)',
+                    },
+                  }}
+                >
+                  Genera Lista della Spesa
+                </Button>
+              </Box>
+
+              <Card sx={{ bgcolor: 'rgba(255, 249, 196, 0.9)', mt: 5, borderRadius: '15px' }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', mb: 2 }}>
+                    Nota
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
+                    Questo piano si basa sulla stagione corrente ({currentSeason}) e include 4 giorni lavorativi a partire da lunedì.
+                    Le ricette sono pensate per cene veloci da preparare dopo il lavoro, escludendo il weekend.
+                    Gli ingredienti inseriti vengono considerati solo per la generazione del piano.
+                    Si consiglia di preparare porzioni extra per il pranzo del giorno successivo.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
+          )}
+
+          <Dialog 
+            open={openShoppingList} 
+            onClose={handleCloseShoppingList}
+            PaperProps={{
+              style: {
+                borderRadius: '15px',
+                padding: '20px',
+              },
+            }}
+          >
+            <DialogTitle sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>Lista della Spesa</DialogTitle>
+            <DialogContent>
+              {shoppingList.map((recipe, index) => (
+                <Box key={index} sx={{ mb: 4 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme.palette.secondary.main, mb: 2 }}>{recipe.name}</Typography>
+                  <Typography variant="subtitle1" sx={{ mt: 1, fontWeight: 'bold' }}>Ingredienti:</Typography>
+                  <List dense>
+                    {recipe.ingredients.map((item, idx) => (
+                      <ListItem key={idx} sx={{ pl: 0 }}>
+                        <ListItemText primary={item} primaryTypographyProps={{ sx: { fontSize: '0.9rem' } }} />
+                      </ListItem>
+                    ))}
+                  </List>
+                  <Typography variant="subtitle1" sx={{ mt: 2, fontWeight: 'bold' }}>Istruzioni:</Typography>
+                  <List dense>
+                    {recipe.instructions.map((step, idx) => (
+                      <ListItem key={idx} sx={{ pl: 0 }}>
+                        <ListItemText primary={`${idx + 1}. ${step}`} primaryTypographyProps={{ sx: { fontSize: '0.9rem' } }} />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              ))}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={exportShoppingList} color="primary">Esporta</Button>
+              <Button onClick={shareToPhone} color="primary">Invia al Telefono</Button>
+              <Button onClick={handleCloseShoppingList} color="primary">Chiudi</Button>
+            </DialogActions>
+          </Dialog>
         </Container>
       </Box>
     </ThemeProvider>
