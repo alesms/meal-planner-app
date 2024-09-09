@@ -31,6 +31,36 @@ const theme = createTheme({
     h1: {
       fontWeight: 700,
     },
+    h4: {
+      fontSize: '1.75rem',
+      '@media (max-width:600px)': {
+        fontSize: '1.5rem',
+      },
+    },
+    h5: {
+      fontSize: '1.5rem',
+      '@media (max-width:600px)': {
+        fontSize: '1.25rem',
+      },
+    },
+    h6: {
+      fontSize: '1.25rem',
+      '@media (max-width:600px)': {
+        fontSize: '1.1rem',
+      },
+    },
+    body1: {
+      fontSize: '1rem',
+      '@media (max-width:600px)': {
+        fontSize: '0.9rem',
+      },
+    },
+    body2: {
+      fontSize: '0.875rem',
+      '@media (max-width:600px)': {
+        fontSize: '0.8rem',
+      },
+    },
   },
   components: {
     MuiCard: {
@@ -292,13 +322,13 @@ function App() {
       }}>
         <AppBar position="static" sx={{ backgroundColor: 'rgba(255, 111, 0, 0.9)', boxShadow: 'none' }}>
           <Toolbar>
-            <RestaurantMenuIcon sx={{ mr: 2, fontSize: '2rem' }} />
+            <RestaurantMenuIcon sx={{ mr: 2, fontSize: isMobile ? '1.5rem' : '2rem' }} />
             <Typography variant="h5" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', letterSpacing: '1px' }}>
               Pianificatore Cene Gourmet
             </Typography>
           </Toolbar>
         </AppBar>
-        <Container maxWidth="lg" sx={{ mt: 6, mb: 6, px: isMobile ? 2 : 3 }}>
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: isMobile ? 2 : 3 }}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -379,26 +409,23 @@ function App() {
           )}
 
           {mealPlan.length > 0 && (
-            <Box sx={{ mb: 5 }}>
-              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', marginBottom: '2rem' }}>
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', mb: isMobile ? '1rem' : '2rem' }}>
                 Piano Cene - {currentSeason.charAt(0).toUpperCase() + currentSeason.slice(1)}
               </Typography>
               <Grid container spacing={2}>
                 {mealPlan.map((day, index) => (
                   <Grid item xs={12} key={index}>
-                    <MotionCard
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                    <Card
                       sx={{
                         bgcolor: 'rgba(255, 255, 255, 0.95)',
                         borderRadius: '15px',
                         overflow: 'hidden'
                       }}
                     >
-                      <CardContent>
+                      <CardContent sx={{ p: isMobile ? 2 : 3 }}>
                         <Box display="flex" justifyContent="space-between" alignItems="center">
-                          <Typography variant="h6" sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: '1.1rem' }}>
+                          <Typography variant="h6" sx={{ color: theme.palette.secondary.main, fontWeight: 'bold' }}>
                             {day.day} ({day.date.toLocaleDateString()})
                           </Typography>
                           <Box>
@@ -406,8 +433,9 @@ function App() {
                               checked={selectedRecipes.some(r => r._id === day.dinner._id)}
                               onChange={() => handleRecipeSelection(day.dinner)}
                               color="primary"
+                              size={isMobile ? "small" : "medium"}
                             />
-                            <IconButton onClick={() => regenerateRecipe(index)} color="primary" size="small">
+                            <IconButton onClick={() => regenerateRecipe(index)} color="primary" size={isMobile ? "small" : "medium"}>
                               <RefreshIcon />
                             </IconButton>
                             <IconButton
@@ -416,32 +444,33 @@ function App() {
                                 transform: expandedCard === index ? 'rotate(180deg)' : 'rotate(0deg)',
                                 transition: 'transform 0.3s',
                               }}
+                              size={isMobile ? "small" : "medium"}
                             >
                               <ExpandMoreIcon />
                             </IconButton>
                           </Box>
                         </Box>
-                        <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold', fontSize: '1.2rem', mb: 1 }}>
+                        <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold', my: 1 }}>
                           {day.dinner.name}
                         </Typography>
-                        <Typography variant="body2" sx={{ fontSize: '0.9rem', color: '#666' }}>
-                          <strong>Tempo di preparazione:</strong> {day.dinner.prepTime} minuti
+                        <Typography variant="body2" sx={{ color: '#666' }}>
+                          <strong>Tempo:</strong> {day.dinner.prepTime} min
                         </Typography>
                         <Collapse in={expandedCard === index}>
                           <Box mt={2}>
-                            <Typography variant="body2" sx={{ fontSize: '0.9rem', color: '#666', mb: 2 }}>
-                              <strong>Ingredienti (per 3 persone):</strong> {day.dinner.ingredients.join(", ")}
+                            <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
+                              <strong>Ingredienti (3 persone):</strong> {day.dinner.ingredients.join(", ")}
                             </Typography>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>
                               Istruzioni:
                             </Typography>
-                            <List dense>
+                            <List dense disablePadding>
                               {day.dinner.instructions.map((step, i) => (
-                                <ListItem key={i} sx={{ pl: 0 }}>
+                                <ListItem key={i} sx={{ pl: 0, py: 0.5 }}>
                                   <ListItemText
                                     primary={`${i + 1}. ${step}`}
                                     primaryTypographyProps={{
-                                      sx: { fontSize: '0.9rem', lineHeight: 1.5 }
+                                      sx: { fontSize: '0.8rem', lineHeight: 1.4 }
                                     }}
                                   />
                                 </ListItem>
@@ -450,7 +479,7 @@ function App() {
                           </Box>
                         </Collapse>
                       </CardContent>
-                    </MotionCard>
+                    </Card>
                   </Grid>
                 ))}
               </Grid>
