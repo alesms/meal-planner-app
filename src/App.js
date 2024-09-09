@@ -4,12 +4,13 @@ import {
   Container, Typography, TextField, Button, Chip, Card, CardContent,
   List, ListItem, ListItemText, Box, AppBar, Toolbar, Grid, Paper,
   Checkbox, Dialog, DialogTitle, DialogContent, DialogActions,
-  useMediaQuery, IconButton, Fade
+  useMediaQuery, IconButton, Fade, Collapse
 } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const theme = createTheme({
@@ -77,10 +78,13 @@ function App() {
   const [shoppingList, setShoppingList] = useState([]);
   const [openShoppingList, setOpenShoppingList] = useState(false);
   const [error, setError] = useState(null);
-
-
+  const [expandedCard, setExpandedCard] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const handleExpandClick = (index) => {
+    setExpandedCard(expandedCard === index ? null : index);
+  };
+
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -379,25 +383,22 @@ function App() {
               <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', marginBottom: '2rem' }}>
                 Piano Cene - {currentSeason.charAt(0).toUpperCase() + currentSeason.slice(1)}
               </Typography>
-              <Grid container spacing={4}>
+              <Grid container spacing={2}>
                 {mealPlan.map((day, index) => (
-                  <Grid item xs={12} md={6} key={index}>
+                  <Grid item xs={12} key={index}>
                     <MotionCard
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                       sx={{
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
                         bgcolor: 'rgba(255, 255, 255, 0.95)',
                         borderRadius: '15px',
                         overflow: 'hidden'
                       }}
                     >
-                      <CardContent sx={{ flexGrow: 1 }}>
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                          <Typography variant="h6" sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: '1.2rem' }}>
+                      <CardContent>
+                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                          <Typography variant="h6" sx={{ color: theme.palette.secondary.main, fontWeight: 'bold', fontSize: '1.1rem' }}>
                             {day.day} ({day.date.toLocaleDateString()})
                           </Typography>
                           <Box>
@@ -406,35 +407,48 @@ function App() {
                               onChange={() => handleRecipeSelection(day.dinner)}
                               color="primary"
                             />
-                            <IconButton onClick={() => regenerateRecipe(index)} color="primary">
+                            <IconButton onClick={() => regenerateRecipe(index)} color="primary" size="small">
                               <RefreshIcon />
+                            </IconButton>
+                            <IconButton
+                              onClick={() => handleExpandClick(index)}
+                              sx={{
+                                transform: expandedCard === index ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.3s',
+                              }}
+                            >
+                              <ExpandMoreIcon />
                             </IconButton>
                           </Box>
                         </Box>
-                        <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 'bold', fontSize: '1.5rem', mb: 2 }}>
+                        <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold', fontSize: '1.2rem', mb: 1 }}>
                           {day.dinner.name}
                         </Typography>
-                        <Typography variant="body2" gutterBottom sx={{ fontSize: '0.9rem', color: '#666' }}>
+                        <Typography variant="body2" sx={{ fontSize: '0.9rem', color: '#666' }}>
                           <strong>Tempo di preparazione:</strong> {day.dinner.prepTime} minuti
                         </Typography>
-                        <Typography variant="body2" gutterBottom sx={{ fontSize: '0.9rem', color: '#666', mb: 2 }}>
-                          <strong>Ingredienti (per 3 persone):</strong> {day.dinner.ingredients.join(", ")}
-                        </Typography>
-                        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>
-                          Istruzioni:
-                        </Typography>
-                        <List dense={isMobile}>
-                          {day.dinner.instructions.map((step, i) => (
-                            <ListItem key={i} sx={{ pl: 0 }}>
-                              <ListItemText
-                                primary={`${i + 1}. ${step}`}
-                                primaryTypographyProps={{
-                                  sx: { fontSize: '0.9rem', lineHeight: 1.5 }
-                                }}
-                              />
-                            </ListItem>
-                          ))}
-                        </List>
+                        <Collapse in={expandedCard === index}>
+                          <Box mt={2}>
+                            <Typography variant="body2" sx={{ fontSize: '0.9rem', color: '#666', mb: 2 }}>
+                              <strong>Ingredienti (per 3 persone):</strong> {day.dinner.ingredients.join(", ")}
+                            </Typography>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>
+                              Istruzioni:
+                            </Typography>
+                            <List dense>
+                              {day.dinner.instructions.map((step, i) => (
+                                <ListItem key={i} sx={{ pl: 0 }}>
+                                  <ListItemText
+                                    primary={`${i + 1}. ${step}`}
+                                    primaryTypographyProps={{
+                                      sx: { fontSize: '0.9rem', lineHeight: 1.5 }
+                                    }}
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          </Box>
+                        </Collapse>
                       </CardContent>
                     </MotionCard>
                   </Grid>
