@@ -338,57 +338,60 @@ function App() {
             transition={{ duration: 0.5 }}
           >
             <Paper elevation={3} sx={{ p: isMobile ? 2 : 4, backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '15px' }}>
-              <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', mb: 2 }}>
-                Ingredienti Disponibili
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', mb: 2 }}>
-                <TextField
-                  value={newIngredient}
-                  onChange={(e) => setNewIngredient(e.target.value)}
-                  placeholder="Aggiungi un ingrediente"
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    mr: isMobile ? 0 : 2,
-                    mb: isMobile ? 1 : 0,
-                    flexGrow: 1,
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '25px',
-                      fontSize: isMobile ? '0.8rem' : '1rem'
-                    }
+            <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', mb: 2 }}>
+              Ingredienti Disponibili
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
+              <TextField
+                value={newIngredient}
+                onChange={(e) => setNewIngredient(e.target.value)}
+                placeholder="Aggiungi un ingrediente"
+                variant="outlined"
+                size="small"
+                fullWidth
+                sx={{ 
+                  mb: isMobile ? 1 : 2,
+                  '& .MuiOutlinedInput-root': { 
+                    borderRadius: '25px',
+                    fontSize: isMobile ? '0.9rem' : '1rem'
+                  },
+                  '& .MuiOutlinedInput-input': {
+                    padding: isMobile ? '10px 14px' : '14px 14px',
+                  }
+                }}
+              />
+              <Button
+                variant="contained"
+                onClick={addIngredient}
+                fullWidth
+                sx={{
+                  bgcolor: theme.palette.secondary.main,
+                  py: 1,
+                  px: 3,
+                  fontSize: isMobile ? '0.9rem' : '1rem',
+                  borderRadius: '25px'
+                }}
+              >
+                Aggiungi
+              </Button>
+            </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {availableIngredients.map((ingredient, index) => (
+                <Chip
+                  key={index}
+                  label={ingredient}
+                  onDelete={() => removeIngredient(ingredient)}
+                  sx={{ 
+                    bgcolor: theme.palette.primary.light, 
+                    color: 'white', 
+                    mb: 1, 
+                    fontWeight: 500,
+                    fontSize: isMobile ? '0.8rem' : '0.9rem'
                   }}
                 />
-                <Button
-                  variant="contained"
-                  onClick={addIngredient}
-                  sx={{
-                    bgcolor: theme.palette.secondary.main,
-                    width: isMobile ? '100%' : 'auto',
-                    py: 1,
-                    px: 3,
-                    fontSize: isMobile ? '0.8rem' : '1rem'
-                  }}
-                >
-                  Aggiungi
-                </Button>
-              </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {availableIngredients.map((ingredient, index) => (
-                  <Chip
-                    key={index}
-                    label={ingredient}
-                    onDelete={() => removeIngredient(ingredient)}
-                    sx={{
-                      bgcolor: theme.palette.primary.light,
-                      color: 'white',
-                      mb: 1,
-                      fontWeight: 500,
-                      fontSize: isMobile ? '0.7rem' : '0.8rem'
-                    }}
-                  />
-                ))}
-              </Box>
-            </Paper>
+              ))}
+            </Box>
+          </Paper>
           </motion.div>
 
           <Box sx={{ mt: 5, mb: 5, textAlign: 'center' }}>
