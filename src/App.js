@@ -76,6 +76,7 @@ function App() {
   const [selectedRecipes, setSelectedRecipes] = useState([]);
   const [shoppingList, setShoppingList] = useState([]);
   const [openShoppingList, setOpenShoppingList] = useState(false);
+  const [error, setError] = useState(null);
 
 
   const theme = useTheme();
@@ -119,31 +120,34 @@ function App() {
   };
 
   const generateMealPlan = () => {
+    if (recipes.length === 0) {
+      setError("Non ci sono ricette disponibili. Riprova più tardi.");
+      return;
+    }
+
+    setError(null);
     const weekPlan = [];
     const usedRecipes = new Set(selectedRecipes.map(recipe => recipe._id));
-    let currentDateCopy = new Date();
-    const today = new Date();
+    let currentDateCopy = new Date(currentDate);
 
-    while (currentDateCopy.getDay() < 1 || currentDateCopy.getDay() > 4) {
+    // Assicuriamoci di iniziare dal lunedì della settimana corrente
+    while (currentDateCopy.getDay() !== 1) {
       currentDateCopy.setDate(currentDateCopy.getDate() + 1);
     }
 
-    while (weekPlan.length < 4) {
-      const dayOfWeek = currentDateCopy.getDay();
-
-      if (dayOfWeek >= 1 && dayOfWeek <= 4) {
-        const isToday = currentDateCopy.toDateString() === today.toDateString();
-        const dinner = getRandomRecipe(usedRecipes, isToday);
-
-        if (dinner) {
-          usedRecipes.add(dinner._id);
-          const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
-          weekPlan.push({
-            day: `${days[dayOfWeek]}${isToday ? ' (oggi)' : ''}`,
-            date: new Date(currentDateCopy),
-            dinner
-          });
-        }
+    for (let i = 0; i < 4; i++) {
+      const dinner = getRandomRecipe(usedRecipes);
+      if (dinner) {
+        usedRecipes.add(dinner._id);
+        const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+        weekPlan.push({
+          day: days[currentDateCopy.getDay()],
+          date: new Date(currentDateCopy),
+          dinner
+        });
+      } else {
+        setError("Non ci sono abbastanza ricette uniche per completare il piano. Riprova.");
+        return;
       }
       currentDateCopy.setDate(currentDateCopy.getDate() + 1);
     }
@@ -153,7 +157,8 @@ function App() {
   };
 
 
-  const getRandomRecipe = (usedRecipes, isToday) => {
+
+  const getRandomRecipe = (usedRecipes) => {
     let availableRecipes = recipes.filter(recipe =>
       !usedRecipes.has(recipe._id) &&
       (recipe.season === currentSeason || recipe.season === 'all')
@@ -166,7 +171,7 @@ function App() {
       );
     }
 
-    if (isToday && availableIngredients.length > 0) {
+    if (availableIngredients.length > 0) {
       const recipesWithIngredients = availableRecipes.filter(recipe =>
         recipe.ingredients.some(ing =>
           availableIngredients.some(avail =>
@@ -180,7 +185,7 @@ function App() {
       }
     }
 
-    return availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+    return availableRecipes.length > 0 ? availableRecipes[Math.floor(Math.random() * availableRecipes.length)] : null;
   };
 
 
@@ -363,6 +368,12 @@ function App() {
             </Button>
           </Box>
 
+          {error && (
+            <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>
+              {error}
+            </Typography>
+          )}
+
           {mealPlan.length > 0 && (
             <Box sx={{ mb: 5 }}>
               <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', marginBottom: '2rem' }}>
@@ -415,10 +426,10 @@ function App() {
                         <List dense={isMobile}>
                           {day.dinner.instructions.map((step, i) => (
                             <ListItem key={i} sx={{ pl: 0 }}>
-                              <ListItemText 
-                                primary={`${i + 1}. ${step}`} 
-                                primaryTypographyProps={{ 
-                                  sx: { fontSize: '0.9rem', lineHeight: 1.5 } 
+                              <ListItemText
+                                primary={`${i + 1}. ${step}`}
+                                primaryTypographyProps={{
+                                  sx: { fontSize: '0.9rem', lineHeight: 1.5 }
                                 }}
                               />
                             </ListItem>
@@ -466,8 +477,8 @@ function App() {
             </Box>
           )}
 
-          <Dialog 
-            open={openShoppingList} 
+          <Dialog
+            open={openShoppingList}
             onClose={handleCloseShoppingList}
             PaperProps={{
               style: {
