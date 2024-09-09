@@ -28,70 +28,61 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
-    h1: {
-      fontWeight: 700,
-    },
     h4: {
       fontSize: '1.75rem',
       '@media (max-width:600px)': {
-        fontSize: '1.5rem',
+        fontSize: '1.2rem',
       },
     },
     h5: {
       fontSize: '1.5rem',
       '@media (max-width:600px)': {
-        fontSize: '1.25rem',
+        fontSize: '1rem',
       },
     },
     h6: {
       fontSize: '1.25rem',
       '@media (max-width:600px)': {
-        fontSize: '1.1rem',
+        fontSize: '0.9rem',
       },
     },
     body1: {
       fontSize: '1rem',
       '@media (max-width:600px)': {
-        fontSize: '0.9rem',
+        fontSize: '0.85rem',
       },
     },
     body2: {
       fontSize: '0.875rem',
       '@media (max-width:600px)': {
-        fontSize: '0.8rem',
+        fontSize: '0.75rem',
       },
     },
   },
   components: {
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
-          transition: 'all 0.3s cubic-bezier(.25,.8,.25,1)',
-          '&:hover': {
-            boxShadow: '0 7px 14px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
-          },
-        },
-      },
-    },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '50px',
-          textTransform: 'none',
-          fontWeight: 600,
+          '@media (max-width:600px)': {
+            fontSize: '0.8rem',
+            padding: '6px 12px',
+          },
         },
       },
     },
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: '16px',
+          '@media (max-width:600px)': {
+            height: '24px',
+            fontSize: '0.7rem',
+          },
         },
       },
     },
   },
 });
+
 
 const MotionCard = motion(Card);
 
@@ -321,31 +312,51 @@ function App() {
         backgroundAttachment: 'fixed',
       }}>
         <AppBar position="static" sx={{ backgroundColor: 'rgba(255, 111, 0, 0.9)', boxShadow: 'none' }}>
-          <Toolbar>
-            <RestaurantMenuIcon sx={{ mr: 2, fontSize: isMobile ? '1.5rem' : '2rem' }} />
-            <Typography variant="h5" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', letterSpacing: '1px' }}>
+          <Toolbar sx={{ minHeight: isMobile ? '48px' : '64px' }}>
+            <RestaurantMenuIcon sx={{ mr: 1, fontSize: isMobile ? '1.2rem' : '2rem' }} />
+            <Typography
+              variant="h5"
+              component="div"
+              sx={{
+                flexGrow: 1,
+                fontWeight: 'bold',
+                letterSpacing: '0.5px',
+                fontSize: isMobile ? '1rem' : '1.5rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
               Pianificatore Cene Gourmet
             </Typography>
           </Toolbar>
         </AppBar>
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4, px: isMobile ? 2 : 3 }}>
+        <Container maxWidth="lg" sx={{ mt: isMobile ? 2 : 4, mb: isMobile ? 2 : 4, px: isMobile ? 1 : 3 }}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <Paper elevation={3} sx={{ p: isMobile ? 3 : 5, backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '15px' }}>
-              <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', marginBottom: '1.5rem' }}>
-                Ingredienti Disponibili per Oggi
+            <Paper elevation={3} sx={{ p: isMobile ? 2 : 4, backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '15px' }}>
+              <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', mb: 2 }}>
+                Ingredienti Disponibili
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', mb: 3 }}>
+              <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', mb: 2 }}>
                 <TextField
                   value={newIngredient}
                   onChange={(e) => setNewIngredient(e.target.value)}
                   placeholder="Aggiungi un ingrediente"
                   variant="outlined"
                   size="small"
-                  sx={{ mr: isMobile ? 0 : 2, mb: isMobile ? 2 : 0, flexGrow: 1, '& .MuiOutlinedInput-root': { borderRadius: '25px' } }}
+                  sx={{
+                    mr: isMobile ? 0 : 2,
+                    mb: isMobile ? 1 : 0,
+                    flexGrow: 1,
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '25px',
+                      fontSize: isMobile ? '0.8rem' : '1rem'
+                    }
+                  }}
                 />
                 <Button
                   variant="contained"
@@ -354,30 +365,28 @@ function App() {
                     bgcolor: theme.palette.secondary.main,
                     width: isMobile ? '100%' : 'auto',
                     py: 1,
-                    px: 3
+                    px: 3,
+                    fontSize: isMobile ? '0.8rem' : '1rem'
                   }}
                 >
                   Aggiungi
                 </Button>
               </Box>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                <AnimatePresence>
-                  {availableIngredients.map((ingredient, index) => (
-                    <motion.div
-                      key={ingredient}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Chip
-                        label={ingredient}
-                        onDelete={() => removeIngredient(ingredient)}
-                        sx={{ bgcolor: theme.palette.primary.light, color: 'white', mb: 1, fontWeight: 500 }}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                {availableIngredients.map((ingredient, index) => (
+                  <Chip
+                    key={index}
+                    label={ingredient}
+                    onDelete={() => removeIngredient(ingredient)}
+                    sx={{
+                      bgcolor: theme.palette.primary.light,
+                      color: 'white',
+                      mb: 1,
+                      fontWeight: 500,
+                      fontSize: isMobile ? '0.7rem' : '0.8rem'
+                    }}
+                  />
+                ))}
               </Box>
             </Paper>
           </motion.div>
