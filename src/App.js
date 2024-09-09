@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-  Container, Typography, TextField, Button, Chip, Card, CardContent, 
+import {
+  Container, Typography, TextField, Button, Chip, Card, CardContent,
   List, ListItem, ListItemText, Box, AppBar, Toolbar, Grid, Paper,
   Checkbox, Dialog, DialogTitle, DialogContent, DialogActions,
   useMediaQuery, IconButton
@@ -61,6 +61,7 @@ function App() {
   const [shoppingList, setShoppingList] = useState([]);
   const [openShoppingList, setOpenShoppingList] = useState(false);
 
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -113,18 +114,18 @@ function App() {
 
     while (weekPlan.length < 4) {
       const dayOfWeek = currentDateCopy.getDay();
-      
+
       if (dayOfWeek >= 1 && dayOfWeek <= 4) {
         const isToday = currentDateCopy.toDateString() === today.toDateString();
         const dinner = getRandomRecipe(usedRecipes, isToday);
-        
+
         if (dinner) {
           usedRecipes.add(dinner._id);
           const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
-          weekPlan.push({ 
+          weekPlan.push({
             day: `${days[dayOfWeek]}${isToday ? ' (oggi)' : ''}`,
             date: new Date(currentDateCopy),
-            dinner 
+            dinner
           });
         }
       }
@@ -137,22 +138,22 @@ function App() {
 
 
   const getRandomRecipe = (usedRecipes, isToday) => {
-    let availableRecipes = recipes.filter(recipe => 
+    let availableRecipes = recipes.filter(recipe =>
       !usedRecipes.has(recipe._id) &&
       (recipe.season === currentSeason || recipe.season === 'all')
     );
 
     if (availableRecipes.length === 0) {
       // Se non ci sono ricette disponibili, includiamo tutte le ricette della stagione
-      availableRecipes = recipes.filter(recipe => 
+      availableRecipes = recipes.filter(recipe =>
         recipe.season === currentSeason || recipe.season === 'all'
       );
     }
 
     if (isToday && availableIngredients.length > 0) {
       const recipesWithIngredients = availableRecipes.filter(recipe =>
-        recipe.ingredients.some(ing => 
-          availableIngredients.some(avail => 
+        recipe.ingredients.some(ing =>
+          availableIngredients.some(avail =>
             ing.toLowerCase().includes(avail.toLowerCase())
           )
         )
@@ -176,6 +177,12 @@ function App() {
         return [...prev, recipe];
       }
     });
+  };
+
+  const handleCloseShoppingList = () => {
+    setOpenShoppingList(false);
+    setShoppingList([]);
+    setSelectedRecipes([]);
   };
 
   const regenerateRecipe = (index) => {
@@ -239,11 +246,11 @@ function App() {
 
   if (loading) {
     return (
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           height: '100vh',
           background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
         }}
@@ -257,7 +264,7 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ 
+      <Box sx={{
         minHeight: '100vh',
         backgroundImage: `url('https://images.unsplash.com/photo-1495195134817-aeb325a55b65?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')`,
         backgroundSize: 'cover',
@@ -286,10 +293,10 @@ function App() {
                   size="small"
                   sx={{ mr: isMobile ? 0 : 2, mb: isMobile ? 2 : 0, flexGrow: 1, width: isMobile ? '100%' : 'auto' }}
                 />
-                <Button 
-                  variant="contained" 
-                  onClick={addIngredient} 
-                  sx={{ 
+                <Button
+                  variant="contained"
+                  onClick={addIngredient}
+                  sx={{
                     bgcolor: theme.palette.secondary.main,
                     width: isMobile ? '100%' : 'auto'
                   }}
@@ -299,10 +306,10 @@ function App() {
               </Box>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {availableIngredients.map((ingredient, index) => (
-                  <Chip 
-                    key={index} 
-                    label={ingredient} 
-                    onDelete={() => removeIngredient(ingredient)} 
+                  <Chip
+                    key={index}
+                    label={ingredient}
+                    onDelete={() => removeIngredient(ingredient)}
                     sx={{ bgcolor: theme.palette.primary.light, color: 'white', mb: 1 }}
                   />
                 ))}
@@ -310,13 +317,13 @@ function App() {
             </Paper>
 
             <Box sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={generateMealPlan} 
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={generateMealPlan}
                 size="large"
-                sx={{ 
-                  fontSize: isMobile ? '1rem' : '1.2rem', 
+                sx={{
+                  fontSize: isMobile ? '1rem' : '1.2rem',
                   padding: isMobile ? '8px 16px' : '10px 30px',
                   boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
                   '&:hover': {
@@ -337,10 +344,10 @@ function App() {
                 <Grid container spacing={3}>
                   {mealPlan.map((day, index) => (
                     <Grid item xs={12} md={6} key={index}>
-                      <AnimatedCard 
-                        sx={{ 
-                          height: '100%', 
-                          display: 'flex', 
+                      <AnimatedCard
+                        sx={{
+                          height: '100%',
+                          display: 'flex',
                           flexDirection: 'column',
                           bgcolor: 'rgba(255, 255, 255, 0.9)',
                         }}
@@ -384,7 +391,7 @@ function App() {
                     </Grid>
                   ))}
                 </Grid>
-                
+
                 <Box sx={{ mt: 4, textAlign: 'center' }}>
                   <Button
                     variant="contained"
@@ -407,8 +414,8 @@ function App() {
                       Nota
                     </Typography>
                     <Typography variant="body2">
-                      Questo piano si basa sulla stagione corrente ({currentSeason}) e include 4 giorni lavorativi a partire da lunedì. 
-                      Le ricette sono pensate per cene veloci da preparare dopo il lavoro, escludendo il weekend. 
+                      Questo piano si basa sulla stagione corrente ({currentSeason}) e include 4 giorni lavorativi a partire da lunedì.
+                      Le ricette sono pensate per cene veloci da preparare dopo il lavoro, escludendo il weekend.
                       Gli ingredienti inseriti vengono considerati solo per la generazione del piano.
                       Si consiglia di preparare porzioni extra per il pranzo del giorno successivo.
                     </Typography>
@@ -417,7 +424,7 @@ function App() {
               </Box>
             )}
 
-            <Dialog open={openShoppingList} onClose={() => setOpenShoppingList(false)}>
+            <Dialog open={openShoppingList} onClose={handleCloseShoppingList}>
               <DialogTitle>Lista della Spesa</DialogTitle>
               <DialogContent>
                 {shoppingList.map((recipe, index) => (
@@ -445,7 +452,7 @@ function App() {
               <DialogActions>
                 <Button onClick={exportShoppingList}>Esporta</Button>
                 <Button onClick={shareToPhone}>Invia al Telefono</Button>
-                <Button onClick={() => setOpenShoppingList(false)}>Chiudi</Button>
+                <Button onClick={handleCloseShoppingList}>Chiudi</Button>
               </DialogActions>
             </Dialog>
           </animated.div>
