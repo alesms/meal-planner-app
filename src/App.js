@@ -327,7 +327,7 @@ function App() {
                 textOverflow: 'ellipsis'
               }}
             >
-              Pianificatore Cene Gourmet
+              Pianificatore Cene
             </Typography>
           </Toolbar>
         </AppBar>
