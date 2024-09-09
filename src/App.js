@@ -4,7 +4,7 @@ import {
   Container, Typography, TextField, Button, Chip, Card, CardContent,
   List, ListItem, ListItemText, Box, AppBar, Toolbar, Grid, Paper,
   Checkbox, Dialog, DialogTitle, DialogContent, DialogActions,
-  useMediaQuery, IconButton, Fade, Collapse
+  useMediaQuery, IconButton, Collapse
 } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
@@ -338,60 +338,68 @@ function App() {
             transition={{ duration: 0.5 }}
           >
             <Paper elevation={3} sx={{ p: isMobile ? 2 : 4, backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '15px' }}>
-            <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', mb: 2 }}>
-              Ingredienti Disponibili
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
-              <TextField
-                value={newIngredient}
-                onChange={(e) => setNewIngredient(e.target.value)}
-                placeholder="Aggiungi un ingrediente"
-                variant="outlined"
-                size="small"
-                fullWidth
-                sx={{ 
-                  mb: isMobile ? 1 : 2,
-                  '& .MuiOutlinedInput-root': { 
-                    borderRadius: '25px',
-                    fontSize: isMobile ? '0.9rem' : '1rem'
-                  },
-                  '& .MuiOutlinedInput-input': {
-                    padding: isMobile ? '10px 14px' : '14px 14px',
-                  }
-                }}
-              />
-              <Button
-                variant="contained"
-                onClick={addIngredient}
-                fullWidth
-                sx={{
-                  bgcolor: theme.palette.secondary.main,
-                  py: 1,
-                  px: 3,
-                  fontSize: isMobile ? '0.9rem' : '1rem',
-                  borderRadius: '25px'
-                }}
-              >
-                Aggiungi
-              </Button>
-            </Box>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {availableIngredients.map((ingredient, index) => (
-                <Chip
-                  key={index}
-                  label={ingredient}
-                  onDelete={() => removeIngredient(ingredient)}
-                  sx={{ 
-                    bgcolor: theme.palette.primary.light, 
-                    color: 'white', 
-                    mb: 1, 
-                    fontWeight: 500,
-                    fontSize: isMobile ? '0.8rem' : '0.9rem'
+              <Typography variant="h5" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', mb: 2 }}>
+                Ingredienti Disponibili
+              </Typography>
+              <Box sx={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                alignItems: isMobile ? 'stretch' : 'center',
+                mb: 2
+              }}>
+                <TextField
+                  value={newIngredient}
+                  onChange={(e) => setNewIngredient(e.target.value)}
+                  placeholder="Aggiungi un ingrediente"
+                  variant="outlined"
+                  size="small"
+                  fullWidth={isMobile}
+                  sx={{
+                    mr: isMobile ? 0 : 2,
+                    mb: isMobile ? 1 : 0,
+                    flexGrow: isMobile ? 0 : 1,
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '25px',
+                      fontSize: isMobile ? '0.9rem' : '1rem'
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      padding: isMobile ? '10px 14px' : '14px 14px',
+                    }
                   }}
                 />
-              ))}
-            </Box>
-          </Paper>
+                <Button
+                  variant="contained"
+                  onClick={addIngredient}
+                  fullWidth={isMobile}
+                  sx={{
+                    bgcolor: theme.palette.secondary.main,
+                    py: 1,
+                    px: 3,
+                    fontSize: isMobile ? '0.9rem' : '1rem',
+                    borderRadius: '25px',
+                    minWidth: isMobile ? 'auto' : '120px'
+                  }}
+                >
+                  Aggiungi
+                </Button>
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {availableIngredients.map((ingredient, index) => (
+                  <Chip
+                    key={index}
+                    label={ingredient}
+                    onDelete={() => removeIngredient(ingredient)}
+                    sx={{
+                      bgcolor: theme.palette.primary.light,
+                      color: 'white',
+                      mb: 1,
+                      fontWeight: 500,
+                      fontSize: isMobile ? '0.8rem' : '0.9rem'
+                    }}
+                  />
+                ))}
+              </Box>
+            </Paper>
           </motion.div>
 
           <Box sx={{ mt: 5, mb: 5, textAlign: 'center' }}>
