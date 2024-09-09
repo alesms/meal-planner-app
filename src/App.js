@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import axios from 'axios';
+import {
   Container, Typography, TextField, Button, Chip, Card, CardContent,
   List, ListItem, ListItemText, Box, AppBar, Toolbar, Grid, Paper,
   Checkbox, Dialog, DialogTitle, DialogContent, DialogActions,
-  useMediaQuery, IconButton, Divider
+  useMediaQuery, IconButton
 } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
-import RestaurantMenuIcon from 'lucide-react/dist/esm/icons/utensils';
-import ShoppingCartIcon from 'lucide-react/dist/esm/icons/shopping-cart';
-import RefreshIcon from 'lucide-react/dist/esm/icons/refresh-cw';
-import { motion } from 'framer-motion';
-
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { useSpring, animated } from 'react-spring';
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#4a148c',
+      main: '#ff6f00',
     },
     secondary: {
-      main: '#ff6f00',
+      main: '#1e88e5',
     },
     background: {
       default: '#f5f5f5',
@@ -26,7 +26,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: "'Poppins', 'Roboto', 'Helvetica', 'Arial', sans-serif",
+    fontFamily: "'Roboto', 'Helvetica', 'Arial', sans-serif",
     h1: {
       fontWeight: 700,
     },
@@ -35,29 +35,18 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-          borderRadius: '12px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08)',
           transition: 'all 0.3s cubic-bezier(.25,.8,.25,1)',
           '&:hover': {
-            boxShadow: '0 12px 24px rgba(0,0,0,0.15)',
-            transform: 'translateY(-4px)',
+            boxShadow: '0 7px 14px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.08)',
           },
-        },
-      },
-    },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: '8px',
-          textTransform: 'none',
-          fontWeight: 600,
         },
       },
     },
   },
 });
 
-const MotionCard = motion(Card);
+const AnimatedCard = animated(Card);
 
 function App() {
   const [recipes, setRecipes] = useState([]);
