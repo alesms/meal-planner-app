@@ -207,7 +207,7 @@ function App() {
 
     return availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
   };
-  
+
 
 
   const handleRecipeSelection = (recipe) => {
@@ -427,7 +427,7 @@ function App() {
           {mealPlan.length > 0 && (
             <Box sx={{ mb: 4 }}>
               <Typography variant="h4" gutterBottom sx={{ color: theme.palette.primary.main, fontWeight: 'bold', mb: isMobile ? '1rem' : '2rem' }}>
-                Piano Cene - {currentSeason.charAt(0).toUpperCase() + currentSeason.slice(1)}
+                Piano Cene
               </Typography>
               <Grid container spacing={2}>
                 {mealPlan.map((day, index) => (
