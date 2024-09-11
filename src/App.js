@@ -184,16 +184,11 @@ function App() {
 
 
   const getRandomRecipe = (usedRecipes) => {
-    let availableRecipes = recipes.filter(recipe =>
-      !usedRecipes.has(recipe._id) &&
-      (recipe.season === currentSeason || recipe.season === 'all')
-    );
+    let availableRecipes = recipes.filter(recipe => !usedRecipes.has(recipe._id));
 
     if (availableRecipes.length === 0) {
-      // Se non ci sono ricette disponibili, includiamo tutte le ricette della stagione
-      availableRecipes = recipes.filter(recipe =>
-        recipe.season === currentSeason || recipe.season === 'all'
-      );
+      // Se tutte le ricette sono state usate, resettiamo la selezione
+      availableRecipes = recipes;
     }
 
     if (availableIngredients.length > 0) {
@@ -210,8 +205,9 @@ function App() {
       }
     }
 
-    return availableRecipes.length > 0 ? availableRecipes[Math.floor(Math.random() * availableRecipes.length)] : null;
+    return availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
   };
+  
 
 
   const handleRecipeSelection = (recipe) => {
